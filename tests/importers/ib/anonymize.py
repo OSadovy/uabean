@@ -1,6 +1,6 @@
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from xml.etree import ElementTree as ET
 
 

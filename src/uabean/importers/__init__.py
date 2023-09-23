@@ -1,4 +1,3 @@
-# flake8: noqa F401
 from .alfa_business import Importer as AlfaBusinessImporter
 from .binance import Importer as BinanceImporter
 from .ibkr import Importer as IBKRImporter
