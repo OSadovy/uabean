@@ -5,13 +5,15 @@ See https://github.com/dimboknv/p24-cli
 The xml format is identical to that of p24 merchant api.
 """
 
-from xml.etree import ElementTree as ET
 import datetime
-import dateutil.parser
+from xml.etree import ElementTree as ET
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
 from beancount.core import data, flags
 from beancount.core.number import D
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):

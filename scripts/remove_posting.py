@@ -1,5 +1,7 @@
 import sys
+
 from autobean.refactor import models, parser, printer
+
 
 def is_target_transaction(d: models.Transaction) -> bool:
     for p in d.postings:
@@ -7,11 +9,13 @@ def is_target_transaction(d: models.Transaction) -> bool:
             return True
     return False
 
+
 def modify_transaction(t: models.Transaction) -> None:
     for p in t.postings:
         if p.account == "Expenses:Fees:Wise":
             t.postings.remove(p)
             break
+
 
 f = parser.Parser().parse(open(sys.argv[1]).read(), models.File)
 modified = 0

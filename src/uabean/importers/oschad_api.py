@@ -2,33 +2,34 @@
 Imports transactions from Oschadbank online API.
 
 This module supports two types of authorizations:
-1. Using OSCHAD_JSESSIONID_COOKIE environment variable: 
+1. Using OSCHAD_JSESSIONID_COOKIE environment variable:
    The value can be obtained by logging in to Oschadbank online and copying the
    cookie value from the browser.
-   
+
 2. Using manual login credentials:
-   If the OSCHAD_JSESSIONID_COOKIE is not found, the module will prompt the user 
-   to input their username and password. If the session requires OTP 
-   (One-Time Password), the user will be asked to provide it. 
-   Environment variables OSCHAD_LOGIN and OSCHAD_PASSWORD can also be used to 
+   If the OSCHAD_JSESSIONID_COOKIE is not found, the module will prompt the user
+   to input their username and password. If the session requires OTP
+   (One-Time Password), the user will be asked to provide it.
+   Environment variables OSCHAD_LOGIN and OSCHAD_PASSWORD can also be used to
    provide the username and password, respectively.
 """
 
 
-import dateutil.parser
-from datetime import date, timedelta
 import getpass
 
 # import json
 import os
-import sys
 import re
-import requests
+import sys
+from datetime import date, timedelta
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import requests
 from beancount.core import data, flags
 from beancount.core.number import D
 
+from uabean.importers.mixins import IdentifyMixin
 
 API_BASE_URL = "https://online.oschadbank.ua/wb/api/v2"
 
@@ -267,6 +268,7 @@ def get_test_importer():
             "1234567890": "Assets:Oschadbank:Cash:UAH",
         }
     )
+
 
 if __name__ == "__main__":
     from beangulp.testing import main

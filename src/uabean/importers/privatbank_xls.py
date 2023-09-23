@@ -4,13 +4,15 @@ The header is as follows:
 Дата;Час;Категорія;Картка;Опис операції;Сума в валюті картки;Валюта картки;Сума в валюті транзакції;Валюта транзакції;Залишок на кінець періоду;Валюта залишку
 """
 
-import xlrd
 import datetime
-import dateutil.parser
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import xlrd
 from beancount.core import data, flags
 from beancount.core.number import D
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):

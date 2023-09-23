@@ -5,14 +5,15 @@ The header is as follows:
 """
 
 import datetime
-import dateutil.parser
 import os
-import openpyxl
 
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import openpyxl
 from beancount.core import data, flags
 from beancount.core.number import D
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):
@@ -37,7 +38,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         *args,
         fee_account="Expenses:Fees:Pumb",
         cashback_income_account="Income:Cashback:Pumb",
-        **kwargs
+        **kwargs,
     ):
         self.account_config = account_config
         self.fee_account = fee_account
@@ -69,14 +70,16 @@ class Importer(IdentifyMixin, beangulp.Importer):
         balance_end_date = None
         balance_entry = None
         for i, row in enumerate(sheet.iter_rows()):
-            if not date_row_seen :
+            if not date_row_seen:
                 if row[0].value == "Дата операції":
-                    date_row_seen  = True
+                    date_row_seen = True
                 if row[0].value == "Період":
-                    balance_end_date = dateutil.parser.parse(row[1].value.split(" - ")[-1], dayfirst=True)
+                    balance_end_date = dateutil.parser.parse(
+                        row[1].value.split(" - ")[-1], dayfirst=True
+                    )
                 if row[0].value == "Баланс на кінець періоду":
                     balance_entry = data.Balance(
-                        data.new_metadata(filename, i+1),
+                        data.new_metadata(filename, i + 1),
                         balance_end_date.date() + datetime.timedelta(days=1),
                         account,
                         self.get_amount(row[1], account_currency),
@@ -86,7 +89,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
                 continue
             if row[0].value == "ВСЬОГО":
                 break
-            meta = data.new_metadata(filename, i+1)
+            meta = data.new_metadata(filename, i + 1)
             entries.append(self.entry_from_row(meta, account, row))
         if balance_entry is not None:
             entries.append(balance_entry)
@@ -99,16 +102,24 @@ class Importer(IdentifyMixin, beangulp.Importer):
         if self.POS_PAYMENT_STR in narration:
             narration = narration.split("; ")[-1]
         account_currency_amount = self.get_amount(row[self.ACCOUNT_CURRENCY_AMOUNT_COL])
-        transaction_currency_amount = self.get_amount(row[self.TRANSACTION_CURRENCY_AMOUNT_COL])
+        transaction_currency_amount = self.get_amount(
+            row[self.TRANSACTION_CURRENCY_AMOUNT_COL]
+        )
         postings = [
-            data.Posting(
-                account, account_currency_amount, None, None, None, None
-            )
+            data.Posting(account, account_currency_amount, None, None, None, None)
         ]
-        if account_currency_amount.currency != transaction_currency_amount.currency and account_currency_amount.number != transaction_currency_amount.number:
+        if (
+            account_currency_amount.currency != transaction_currency_amount.currency
+            and account_currency_amount.number != transaction_currency_amount.number
+        ):
             meta["converted"] = f"{-transaction_currency_amount}"
         elif account_currency_amount.number != transaction_currency_amount.number:
-            fee_amount = data.Amount(abs(account_currency_amount.number - transaction_currency_amount.number), account_currency_amount.currency)
+            fee_amount = data.Amount(
+                abs(
+                    account_currency_amount.number - transaction_currency_amount.number
+                ),
+                account_currency_amount.currency,
+            )
             postings.append(
                 data.Posting(self.fee_account, fee_amount, None, None, None, None)
             )
@@ -135,6 +146,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
             postings,
         )
 
+
 def get_test_importer():
     return Importer(
         account_config={
@@ -142,6 +154,7 @@ def get_test_importer():
             "EUR": "Assets:EUR:Pumb",
         }
     )
+
 
 if __name__ == "__main__":
     from beangulp.testing import main

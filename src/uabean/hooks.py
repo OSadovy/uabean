@@ -1,7 +1,8 @@
-from collections import defaultdict
 import itertools
-from decimal import Decimal
 import os
+from collections import defaultdict
+from decimal import Decimal
+
 from beancount.core.data import Transaction
 
 
@@ -18,7 +19,9 @@ def detect_transfers(extracted, existing_entries):
             k, v = get_transfer_info(entry)
             found = False
             for other_v, other_entry in possible_transfers[k]:
-                if are_values_oposit(v, other_v) and not same_accounts(other_entry, entry):
+                if are_values_oposit(v, other_v) and not same_accounts(
+                    other_entry, entry
+                ):
                     found = True
                     merge_transactions(other_entry, entry)
                     new_entries.remove(entry)
@@ -48,6 +51,7 @@ def are_values_oposit(v1, v2):
 def same_accounts(t1, t2):
     return set(p.account for p in t1.postings) == set(p.account for p in t2.postings)
 
+
 def merge_transactions(t1, t2):
     t1.postings.extend(t2.postings)
 
@@ -57,8 +61,9 @@ def to_nearest_time(ts, unit="sec", rnd=1, frm=None):
     param ts = time string to round in '%H:%M:%S' or '%H:%M' format :
     param unit = specify unit wich must be rounded 'sec' or 'min' or 'hour', default is seconds :
     param rnd = to which number you will round, the default is 1 :
-    param frm = the output (return) format of the time string, as default the function take the unit format"""
-    from time import strftime, gmtime
+    param frm = the output (return) format of the time string, as default the function take the unit format
+    """
+    from time import gmtime, strftime
 
     ts = ts + ":00" if len(ts) == 5 else ts
     if "se" in unit.lower():
@@ -76,8 +81,9 @@ def to_nearest_time(ts, unit="sec", rnd=1, frm=None):
 
 
 def sort_samebank_entries(new_entries_list, existing_entries):
-    """Sorts entries that are originated from files with same prefix.
-    """
+    """Sorts entries that are originated from files with same prefix."""
     new_entries_list.sort(key=lambda e: e[0])
-    for k, group in itertools.groupby(new_entries_list, key=lambda e: os.path.basename(e[0]).split('-', 1)[0]):
+    for k, group in itertools.groupby(
+        new_entries_list, key=lambda e: os.path.basename(e[0]).split("-", 1)[0]
+    ):
         pass

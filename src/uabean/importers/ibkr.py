@@ -1,5 +1,5 @@
 """
-This is a beancount importer for Interactive Brokers. 
+This is a beancount importer for Interactive Brokers.
 
 Inspired by https://github.com/Dr-Nuke/drnuke-bean/blob/master/src/drnukebean/importer/ibkr.py
 
@@ -18,19 +18,19 @@ It takes FlexQuery xml as input. The report should include all fields for these 
 The XML can be downloaded from interactive brokers manually or via an API.
 """
 
+import functools
+import re
+import warnings
 from collections import defaultdict
 from datetime import timedelta
-import functools
-import warnings
-import re
-from ibflex import parser, Types
-from ibflex.enums import CashAction, BuySell, OpenClose, Reorg
 
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
-from beancount.core import data, amount, flags, realization
+from beancount.core import amount, data, flags, position, realization
 from beancount.core.number import Decimal
-from beancount.core import position
+from ibflex import Types, parser
+from ibflex.enums import BuySell, CashAction, OpenClose, Reorg
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):
@@ -618,7 +618,9 @@ class Importer(IdentifyMixin, beangulp.Importer):
                     data.Posting(
                         self.get_asset_account(row.symbol),
                         amount.Amount(quantity * factor, symbol),
-                        data.CostSpec(price / factor, None, row.currency, date, None, False),
+                        data.CostSpec(
+                            price / factor, None, row.currency, date, None, False
+                        ),
                         None,
                         None,
                         {"ib_cost": round(real_price / factor * quantity, 6)},
@@ -712,7 +714,9 @@ class Importer(IdentifyMixin, beangulp.Importer):
         if row.symbol.endswith(".OLD"):
             row = action_group[1]
         old_symbol = re.search(r"(.*?)\(", row.description).group(1)
-        holdings = [(k[0], v) for k, v in self.holdings_map.items() if k[1] == old_symbol]
+        holdings = [
+            (k[0], v) for k, v in self.holdings_map.items() if k[1] == old_symbol
+        ]
         postings = []
         for date, lst in holdings:
             for quantity, price, real_price in lst:
@@ -816,16 +820,27 @@ class Importer(IdentifyMixin, beangulp.Importer):
                         and tx.posting.cost.number == pos.cost.number
                         and "ib_cost" in tx.posting.meta
                     ):
-                        real_price = abs(tx.posting.meta["ib_cost"] / tx.posting.units.number)
+                        real_price = abs(
+                            tx.posting.meta["ib_cost"] / tx.posting.units.number
+                        )
                     if real_price is None:
                         continue
-                    self._adjust_holding(result, pos.cost.date, pos.units.currency, tx.posting.units.number, tx.posting.cost.number, real_price)
+                    self._adjust_holding(
+                        result,
+                        pos.cost.date,
+                        pos.units.currency,
+                        tx.posting.units.number,
+                        tx.posting.cost.number,
+                        real_price,
+                    )
         return result
 
     def _adjust_holding(self, holdings_map, date, symbol, quantity, price, real_price):
         lst = holdings_map[(date, symbol)]
         for i, (u, _, rp) in enumerate(lst):
-            if round(rp, 4) == round(real_price, 4) or (u == quantity and round(rp, 2) == round(real_price, 2)):
+            if round(rp, 4) == round(real_price, 4) or (
+                u == quantity and round(rp, 2) == round(real_price, 2)
+            ):
                 lst[i][0] += quantity
                 if lst[i][0] == 0:
                     lst.pop(i)
@@ -836,7 +851,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
 def is_forex(symbol):
     # returns True if a transaction is a forex transaction.
     b = re.search(r"(\w{3})[.](\w{3})", symbol)  # find something lile "USD.CHF"
-    if b == None:  # no forex transaction, rather a normal stock transaction
+    if b is None:  # no forex transaction, rather a normal stock transaction
         return False
     else:
         return True

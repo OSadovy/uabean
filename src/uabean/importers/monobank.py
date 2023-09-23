@@ -6,66 +6,15 @@ CSV header is as follows:
 
 import csv
 import datetime
-import dateutil.parser
 import re
-import requests
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import requests
 from beancount.core import data, flags
 from beancount.core.number import D
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from uabean.importers.mixins import IdentifyMixin
 
 mcc_codes_url = "https://raw.githubusercontent.com/Oleksios/Merchant-Category-Codes/main/Without%20groups/mcc-en.json"
 
@@ -133,7 +82,11 @@ class Importer(IdentifyMixin, beangulp.Importer):
         cashback_currency = re.search(r"\((\w+)\)", header[self.CASHBACK_COL]).group(1)
         for i, row in enumerate(reader, 2):
             meta = data.new_metadata(filename, i)
-            entries.append(self.entry_from_row(meta, account, account_currency, cashback_currency, row))
+            entries.append(
+                self.entry_from_row(
+                    meta, account, account_currency, cashback_currency, row
+                )
+            )
         if entries:
             meta = data.new_metadata(filename, i)
             entries.append(
@@ -156,7 +109,10 @@ class Importer(IdentifyMixin, beangulp.Importer):
         price = None
         if row[self.CURRENCY_COL] != account_currency:
             price = data.Amount(
-                round(D(row[self.ORIG_AMOUNT_COL])/D(row[self.AMOUNT_COL]), 6).normalize(), row[self.CURRENCY_COL]
+                round(
+                    D(row[self.ORIG_AMOUNT_COL]) / D(row[self.AMOUNT_COL]), 6
+                ).normalize(),
+                row[self.CURRENCY_COL],
             )
             meta["converted"] = row[self.ORIG_AMOUNT_COL] + " " + row[self.CURRENCY_COL]
         description = row[self.DESCRIPTION_COL]
@@ -165,14 +121,18 @@ class Importer(IdentifyMixin, beangulp.Importer):
         if m := re.search(self.CASHBACK_RE, description):
             u = data.Amount(-D(m.group(1)), cashback_currency)
             postings += [
-                data.Posting(self.cashback_receivable_account, u, None, None, None, None),
+                data.Posting(
+                    self.cashback_receivable_account, u, None, None, None, None
+                ),
                 data.Posting(self.taxes_expense_account, None, None, None, None, None),
             ]
             narration, payee = payee, None
             del meta["category"]
         if m := re.search(self.INTEREST_RE, description):
             u = data.Amount(-D(row[self.AMOUNT_COL]), account_currency)
-            postings.append(data.Posting(self.interest_income_account, u, None, None, None, None))
+            postings.append(
+                data.Posting(self.interest_income_account, u, None, None, None, None)
+            )
             narration, payee = payee, None
             del meta["category"]
         postings.append(
@@ -218,6 +178,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
     def date_from_str(self, s):
         return dateutil.parser.parse(s, dayfirst=True)
 
+
 def get_test_importer():
     return Importer(
         {
@@ -226,6 +187,7 @@ def get_test_importer():
             ("white", "UAH"): "Assets:Monobank:White:UAH",
         }
     )
+
 
 if __name__ == "__main__":
     from beangulp.testing import main

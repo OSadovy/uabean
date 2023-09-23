@@ -8,13 +8,13 @@ Run with --help for usage.
 
 import argparse
 import csv
-from dataclasses import dataclass
 import datetime
-from decimal import Decimal
 import os
-import requests
 import time
+from dataclasses import dataclass
+from decimal import Decimal
 
+import requests
 
 CURRENCY_CODES = {
     "784": "AED",
@@ -333,7 +333,7 @@ class MonobankCSVWriter:
     def write_statement_item(self, account: Account, i: StatementItem):
         exchange_rate = "—"
         if i.currency != account.currency:
-            exchange_rate = round(i.operation_amount / i.amount , 6)
+            exchange_rate = round(i.operation_amount / i.amount, 6)
         comission = "—"
         if i.commission_rate != 0:
             comission = i.commission_rate

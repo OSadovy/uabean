@@ -1,7 +1,7 @@
 import csv
-from datetime import datetime, timedelta
 import re
 import sys
+from datetime import datetime, timedelta
 
 
 def redact_dates_in_description(desc):

@@ -6,14 +6,13 @@ Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD E
 
 import csv
 
-from beancount.core import flags
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
-from beancount.utils.date_utils import parse_date_liberally
-
+from beancount.core import data, flags
 from beancount.core.amount import Amount
 from beancount.core.number import D
-from beancount.core import data
+from beancount.utils.date_utils import parse_date_liberally
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):

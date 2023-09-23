@@ -1,11 +1,12 @@
 import argparse
 import base64
-from datetime import date, datetime, timezone
-from dateutil.parser import isoparse
 import json
 import os
-import rsa
+from datetime import date, datetime, timezone
+
 import requests
+import rsa
+from dateutil.parser import isoparse
 
 
 def do_sca_challenge(one_time_token):
@@ -120,7 +121,6 @@ def main():
         profile_id = profile["id"]
         accounts = wise.list_accounts(profile_id)
         balance_accounts = wise.list_balance_accounts(profile_id)
-        account_id = accounts[0]["id"]
         if (
             args.start_date is None
             or isoparse(accounts[0]["creationTime"]).date() > args.start_date

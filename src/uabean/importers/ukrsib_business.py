@@ -5,16 +5,15 @@ The CSV header is the following:
 """
 
 import csv
-from collections import defaultdict
 import re
+from collections import defaultdict
 
-from beancount.core import flags
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
+from beancount.core.number import D
 from beancount.utils.date_utils import parse_date_liberally
 
-from beancount.core.number import D
-from beancount.core import data
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):
@@ -99,8 +98,8 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return txn
 
     def merge_entries(self, entries):
-        def find_closest(l, other, predicate):
-            for e in l:
+        def find_closest(lst, other, predicate):
+            for e in lst:
                 if not e == other and predicate(e):
                     return e
             return None

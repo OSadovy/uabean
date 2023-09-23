@@ -1,5 +1,6 @@
-from uabean.importers.nexo import get_test_importer
 from common import run_importer_test
+
+from uabean.importers.nexo import get_test_importer
 
 
 def test_nexo_importer(capsys):

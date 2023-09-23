@@ -1,9 +1,9 @@
-import itertools
 import collections
+import itertools
 import re
 
 from beangulp import cache
-from beangulp.importers.mixins.identifier import identify, _PARTS
+from beangulp.importers.mixins.identifier import _PARTS, identify
 
 
 class IdentifyMixin:

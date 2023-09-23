@@ -5,14 +5,15 @@ CSV header is as follows:
 """
 
 import csv
-import dateutil.parser
 import re
-import requests
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import requests
 from beancount.core import data, flags
 from beancount.core.number import D
 
+from uabean.importers.mixins import IdentifyMixin
 
 mcc_codes_url = "https://raw.githubusercontent.com/Oleksios/Merchant-Category-Codes/main/Without%20groups/mcc-en.json"
 

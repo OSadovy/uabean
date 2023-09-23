@@ -3,11 +3,11 @@ import copy
 import datetime
 import logging
 import re
+
+from autobean.refactor import models, parser, printer
 from sklearn.pipeline import FeatureUnion, make_pipeline
 from sklearn.svm import SVC
-from autobean.refactor import models, parser, printer
 from smart_importer.pipelines import get_pipeline
-
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +84,7 @@ class Predictor:
             if not any(i in p.account for i in self.ignored_accounts):
                 non_ignored_accounts_count += 1
             if (
-                not p.account in self.main_accounts
+                p.account not in self.main_accounts
                 and not any(i in p.account for i in self.ignored_accounts)
                 and not p.flag == self.FLAG
             ):
@@ -217,6 +217,7 @@ class MonobankPredictor(PostingPredictor):
 class SensebankPredictor(PostingPredictor):
     weights = {"meta.category": 0.8, "payee": 0.5, "narration": 0.5, "date.day": 0.1}
 
+
 class PrivatbankPredictor(PostingPredictor):
     weights = {"meta.category": 0.6, "narration": 0.5, "date.day": 0.1}
 
@@ -227,6 +228,7 @@ PREDICTORS_CONFIG = [
     (r"Alfabank", SensebankPredictor),
     (r"Privat", PrivatbankPredictor),
 ]
+
 
 def get_predictor(accounts):
     for regex, predictor in PREDICTORS_CONFIG:
@@ -249,9 +251,10 @@ def main():
         argparser.error("No predictor found for the given accounts")
     predictor = PredictorClass(args.account)
     beancount_parser = parser.Parser()
-    file = beancount_parser .parse(args.fname.read(), models.File)
+    file = beancount_parser.parse(args.fname.read(), models.File)
     predictor(file.directives, predict_start_date=args.predict_start_date)
     printer.print_model(file, open(args.fname.name, "w"))
+
 
 if __name__ == "__main__":
     main()

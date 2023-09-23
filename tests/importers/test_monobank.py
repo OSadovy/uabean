@@ -1,5 +1,6 @@
-from uabean.importers.monobank import get_test_importer
 from common import run_importer_test
+
+from uabean.importers.monobank import get_test_importer
 
 
 def test_monobank_importer(capsys):

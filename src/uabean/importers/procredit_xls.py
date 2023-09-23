@@ -1,14 +1,15 @@
 """Imports xls statements from Procreditbank, optained via web interface.
 """
 
-import dateutil.parser
 import re
-import xlrd
 
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
+import xlrd
 from beancount.core import data, flags
 from beancount.core.number import D
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):

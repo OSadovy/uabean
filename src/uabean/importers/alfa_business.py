@@ -5,16 +5,13 @@ The CSV header is the following:
 """
 
 import csv
-from collections import defaultdict
-import datetime
 import re
+from collections import defaultdict
 
-from beancount.core import flags
 import beangulp
-from beancount.utils.date_utils import parse_date_liberally
-
+from beancount.core import data, flags
 from beancount.core.number import D
-from beancount.core import data
+from beancount.utils.date_utils import parse_date_liberally
 
 from uabean.importers.mixins import IdentifyMixin
 
@@ -119,8 +116,8 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return txn
 
     def merge_entries(self, entries):
-        def find_closest(l, other, predicate):
-            for e in l:
+        def find_closest(lst, other, predicate):
+            for e in lst:
                 if not e == other and predicate(e):
                     return e
             return None
@@ -174,13 +171,21 @@ class Importer(IdentifyMixin, beangulp.Importer):
 def get_test_importer():
     return Importer(
         {
-            ("UAH", "UA11111111111111111111111111"): "Assets:Alfabank:Business:Cash:UAH",
-    ("GBP", "UA11111111111111111111111111"): "Assets:Alfabank:Business:Cash:GBP",
-    ("GBP", "UA222222222222222222222"): "Assets:Alfabank:Business:Transit",
+            (
+                "UAH",
+                "UA11111111111111111111111111",
+            ): "Assets:Alfabank:Business:Cash:UAH",
+            (
+                "GBP",
+                "UA11111111111111111111111111",
+            ): "Assets:Alfabank:Business:Cash:GBP",
+            ("GBP", "UA222222222222222222222"): "Assets:Alfabank:Business:Transit",
         },
         "Expenses:Fees:Banking:Alfabank",
     )
 
+
 if __name__ == "__main__":
     from beangulp.testing import main
+
     main(get_test_importer())

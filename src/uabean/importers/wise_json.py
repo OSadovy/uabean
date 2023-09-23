@@ -1,15 +1,17 @@
 """Imports balance statements output by Wise API in json format.
 """
 
-from datetime import timedelta
 import decimal
-import dateutil.parser
 import json
+from datetime import timedelta
+
 import beangulp
-from uabean.importers.mixins import IdentifyMixin
+import dateutil.parser
 from beancount.core import flags
 from beancount.core.amount import Amount
-from beancount.core.data import Balance, Transaction, Posting, new_metadata
+from beancount.core.data import Balance, Posting, Transaction, new_metadata
+
+from uabean.importers.mixins import IdentifyMixin
 
 
 class Importer(IdentifyMixin, beangulp.Importer):

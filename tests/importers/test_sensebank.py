@@ -1,9 +1,10 @@
-from uabean.importers.sensebank import get_test_importer
 from common import run_importer_test
+
+from uabean.importers.sensebank import get_test_importer
 
 
 def test_sensebank_importer(capsys):
-    importer= get_test_importer()
+    importer = get_test_importer()
     importer._download_mcc_codes = lambda: None
     importer.mcc_codes = {
         "4829": "Money transfer",

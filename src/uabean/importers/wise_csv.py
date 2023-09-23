@@ -1,7 +1,7 @@
-from beangulp.importers.csv import CSVImporter, Col
+from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.core.number import ZERO, D
-from beancount.core import data
+from beangulp.importers.csv import Col, CSVImporter
 
 
 class Importer(CSVImporter):

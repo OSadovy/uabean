@@ -5,18 +5,20 @@ User_ID,UTC_Time,Account,Operation,Coin,Change,Remark
 """
 
 import csv
-import dateutil.parser
-import itertools
 import io
+import itertools
 import tarfile
+
 import beangulp
+import dateutil.parser
+from beancount.core import data, flags
 from beancount.core.amount import Amount
 from beancount.core.number import D
-from beancount.core import data, flags
 
 
 class Importer(beangulp.Importer):
     FLAG = flags.FLAG_OKAY
+
     def __init__(
         self,
         spot_wallet_account="Assets:Binance:Spot",
