@@ -26,14 +26,14 @@ import re
 from ibflex import parser, Types
 from ibflex.enums import CashAction, BuySell, OpenClose, Reorg
 
-from beancount.ingest import importer
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
 from beancount.core import data, amount, flags, realization
 from beancount.core.number import Decimal
 from beancount.core import position
 
 
-class Importer(IdentifyMixin, importer.ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
     """
     Beancount Importer for the Interactive Brokers XML FlexQueries
     """
@@ -94,12 +94,15 @@ class Importer(IdentifyMixin, importer.ImporterProtocol):
     def get_pnl_account(self, symbol):
         return self.get_account_name(self.bnl_account, symbol=symbol)
 
-    def extract(self, file, existing_entries=None):
+    def account(self, filename):
+        return "ib"
+
+    def extract(self, filename, existing_entries=None):
         if self.use_existing_holdings and existing_entries is not None:
             self.holdings_map = self.get_holdings_map(existing_entries)
         else:
             self.holdings_map = defaultdict(list)
-        statement = parser.parse(open(file.name))
+        statement = parser.parse(open(filename))
         assert isinstance(statement, Types.FlexQueryResponse)
         poi = statement.FlexStatements[0]  # point of interest
         transactions = (
@@ -795,6 +798,8 @@ class Importer(IdentifyMixin, importer.ImporterProtocol):
         for part in account_parts:
             if "{" in part:
                 break
+            if part not in root:
+                return defaultdict(list)
             root = root[part]
         result = defaultdict(list)
         for account in realization.iter_children(root, leaf_only=True):
@@ -889,3 +894,13 @@ def iter_trades_with_lots(trades):
             raise ValueError(f"Unknown trade element: {t}")
     if trade is not None:
         yield trade, lots
+
+
+def get_test_importer():
+    return Importer()
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

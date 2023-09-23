@@ -5,13 +5,16 @@ from datetime import timedelta
 import decimal
 import dateutil.parser
 import json
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import flags
 from beancount.core.amount import Amount
 from beancount.core.data import Balance, Transaction, Posting, new_metadata
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
+
     def __init__(self, account, fees_account="Expenses:Fees:Wise", **kwargs):
         self.account = account
         self.fees_account = fees_account
@@ -25,35 +28,38 @@ class Importer(IdentifyMixin, ImporterProtocol):
         kwargs["matchers"] = [("filename", fname_pattern)]
         super().__init__(**kwargs)
 
-    def file_account(self, file):
+    def file_account(self, filename):
         # example: wise-business-2022-01-01_2022-10-01-USD.json
-        parts = file.name.split("-")
+        parts = filename.split("-")
         account_type = parts[1].capitalize()
         currency = parts[-1].split(".", 1)[0]
         return self.account.format(type=account_type, currency=currency)
+
+    def account(self, _):
+        return "wise"
 
     @staticmethod
     def date_from_str(s):
         return dateutil.parser.parse(s)
 
-    def data_from_file(self, file):
-        return json.load(open(file.name, encoding="utf-8"), parse_float=decimal.Decimal)
+    def data_from_file(self, filename):
+        return json.load(open(filename, encoding="utf-8"), parse_float=decimal.Decimal)
 
-    def file_date(self, file):
-        data = self.data_from_file(file)
+    def date(self, filename):
+        data = self.data_from_file(filename)
         return data["query"]["intervalEnd"]
 
-    def extract(self, file, existing_entries=None):
-        data = self.data_from_file(file)
+    def extract(self, filename, existing_entries=None):
+        data = self.data_from_file(filename)
         entries = []
-        account = self.file_account(file)
+        account = self.file_account(filename)
         for i, t in enumerate(data["transactions"]):
-            meta = new_metadata(file.name, -(i + 1))
+            meta = new_metadata(filename, -(i + 1))
             entries.append(self.entry_from_transaction(meta, account, t))
         if data["transactions"]:
             entries.append(
                 Balance(
-                    new_metadata(file.name, -(i + 1)),
+                    new_metadata(filename, -(i + 1)),
                     (
                         self.date_from_str(data["query"]["intervalEnd"])
                         + timedelta(days=1)
@@ -109,3 +115,13 @@ class Importer(IdentifyMixin, ImporterProtocol):
 
 def amount_from_obj(obj):
     return Amount(obj["value"], obj["currency"])
+
+
+def get_test_importer():
+    return Importer(account="Assets:Wise:personal:{currency}")
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

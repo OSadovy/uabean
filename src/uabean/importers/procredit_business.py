@@ -9,15 +9,15 @@ from collections import defaultdict
 import re
 
 from beancount.core import flags
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
 from beancount.utils.date_utils import parse_date_liberally
 
 from beancount.core.number import D
 from beancount.core import data
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
     matchers = [
         ("content", __doc__.split("\n")[-2]),
         ("mime", "text/csv"),
@@ -31,8 +31,8 @@ class Importer(IdentifyMixin, ImporterProtocol):
         self.fee_account = fee_account
         super().__init__(*args, **kwargs)
 
-    def get_csv_reader(self, file):
-        return csv.DictReader(open(file.name, encoding="windows-1251"), delimiter=";")
+    def get_csv_reader(self, filename):
+        return csv.DictReader(open(filename, encoding="windows-1251"), delimiter=";")
 
     def get_date_from_row(self, row):
         return parse_date_liberally(row[self.DATE_FIELD], dict(dayfirst=True))
@@ -40,13 +40,13 @@ class Importer(IdentifyMixin, ImporterProtocol):
     def get_account_from_row(self, row):
         k = (row["Валюта"], row["Рахунок"])
         if k not in self.accounts:
-            raise ValueError("Unknown account %s %s" % (row["Валюта"], row["Наш IBAN"]))
+            raise ValueError("Unknown account %s %s" % k)
         return self.accounts[k]
 
-    def file_date(self, file):
+    def date(self, filename):
         "Get the maximum date from the file."
         max_date = None
-        for row in self.get_csv_reader(file):
+        for row in self.get_csv_reader(filename):
             if not row:
                 continue
             date = self.get_date_from_row(row)
@@ -54,12 +54,15 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 max_date = date
         return max_date
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "procreditbank-business"
+
+    def extract(self, filename, existing_entries=None):
         entries = []
-        for index, row in enumerate(self.get_csv_reader(file), 1):
+        for index, row in enumerate(self.get_csv_reader(filename), 1):
             if not row:
                 continue
-            meta = data.new_metadata(file.name, -index)
+            meta = data.new_metadata(filename, -index)
             entry = self.get_entry_from_row(row, meta)
             if entry is not None:
                 entries.append(entry)
@@ -142,3 +145,20 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 e.meta["other_src_doc_n"] = other.meta["src_doc_n"]
                 entries.remove(other)
         return entries
+
+
+def get_test_importer():
+    return Importer(
+        {
+            ("UAH", "UA00000001"): "Assets:ProcreditBank:Business:Cash:UAH",
+            ("GBP", "UA00000001"): "Assets:ProcreditBank:Business:Cash:GBP",
+            ("GBP", "UA00000007"): "Assets:Procreditbank:Business:Transit",
+        },
+        "Expenses:Fees:Banking:ProcreditBank",
+    )
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

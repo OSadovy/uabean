@@ -6,18 +6,20 @@ The CSV header is the following:
 
 import csv
 from collections import defaultdict
+import datetime
 import re
 
 from beancount.core import flags
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
+import beangulp
 from beancount.utils.date_utils import parse_date_liberally
 
 from beancount.core.number import D
 from beancount.core import data
 
+from uabean.importers.mixins import IdentifyMixin
 
-class Importer(IdentifyMixin, ImporterProtocol):
+
+class Importer(IdentifyMixin, beangulp.Importer):
     matchers = [
         ("content", __doc__.split("\n")[-2]),
         ("mime", "text/csv"),
@@ -26,13 +28,24 @@ class Importer(IdentifyMixin, ImporterProtocol):
     currency_conversion_regex = r"Зарахування коштiв вiд вільного продажу (?P<amount>[\d\.]+) (?P<currency>\w+) по курсу (?P<rate>[\d\.]+).*?Комiсiя банку становить (?P<fee>[\d\.]+) грн\."
     DATE_FIELD = "Дата проведення"
 
-    def __init__(self, accounts, fee_account, *args, **kwargs):
+    def __init__(
+        self, accounts: dict[tuple[str, str], str], fee_account: str, *args, **kwargs
+    ):
+        """Initialize an instance of the Importer class.
+
+        Parameters:
+        - accounts (dict[tuple[str, str], str]): A dictionary mapping from a tuple of currency and
+          IBAN to the associated account name. For instance, it maps pairs of currency and IBAN
+          to a specific account string.
+        - fee_account (str): Name of the account where transaction fees should be posted.
+        """
         self.accounts = accounts
         self.fee_account = fee_account
         super().__init__(*args, **kwargs)
 
-    def get_csv_reader(self, file):
-        return csv.DictReader(open(file.name, encoding="windows-1251"), delimiter=";")
+    def get_csv_dict_rows(self, filename):
+        with open(filename, encoding="windows-1251") as f:
+            return list(csv.DictReader(f, delimiter=";"))
 
     def get_date_from_row(self, row):
         return parse_date_liberally(row[self.DATE_FIELD], dict(dayfirst=True))
@@ -43,10 +56,13 @@ class Importer(IdentifyMixin, ImporterProtocol):
             raise ValueError("Unknown account %s %s" % (row["Валюта"], row["Наш IBAN"]))
         return self.accounts[k]
 
-    def file_date(self, file):
+    def account(self, filename):
+        return "alfabank_business"
+
+    def date(self, filename):
         "Get the maximum date from the file."
         max_date = None
-        for row in self.get_csv_reader(file):
+        for row in self.get_csv_dict_rows(filename):
             if not row:
                 continue
             date = self.get_date_from_row(row)
@@ -54,12 +70,12 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 max_date = date
         return max_date
 
-    def extract(self, file, existing_entries=None):
+    def extract(self, filename, existing_entries=None):
         entries = []
-        for index, row in enumerate(self.get_csv_reader(file), 1):
+        for index, row in enumerate(self.get_csv_dict_rows(filename), 1):
             if not row:
                 continue
-            meta = data.new_metadata(file.name, index)
+            meta = data.new_metadata(filename, index)
             entry = self.get_entry_from_row(row, meta)
             if entry is not None:
                 entries.append(entry)
@@ -153,3 +169,18 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 e.meta["other_src_doc_n"] = other.meta["src_doc_n"]
                 entries.remove(other)
         return entries
+
+
+def get_test_importer():
+    return Importer(
+        {
+            ("UAH", "UA11111111111111111111111111"): "Assets:Alfabank:Business:Cash:UAH",
+    ("GBP", "UA11111111111111111111111111"): "Assets:Alfabank:Business:Cash:GBP",
+    ("GBP", "UA222222222222222222222"): "Assets:Alfabank:Business:Transit",
+        },
+        "Expenses:Fees:Banking:Alfabank",
+    )
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+    main(get_test_importer())

@@ -7,13 +7,14 @@ The header is as follows:
 import xlrd
 import datetime
 import dateutil.parser
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     matchers = [
         ("filename", "privat"),
         ("mime", "application/vnd.ms-excel"),
@@ -37,7 +38,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
         card_to_account_map,
         *args,
         fee_account="Expenses:Fees:Privatbank",
-        **kwargs
+        **kwargs,
     ):
         self.card_to_account_map = card_to_account_map
         self.fee_account = fee_account
@@ -54,26 +55,32 @@ class Importer(IdentifyMixin, ImporterProtocol):
     def get_number(cell):
         return D(str(cell.value))
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "privatbank"
+
+    def extract(self, filename, existing_entries=None):
         entries = []
-        workbook = xlrd.open_workbook(file.name)
+        workbook = xlrd.open_workbook(filename)
         sheet = workbook.sheet_by_index(0)
         assert "Виписка з Ваших карток за період" in sheet.cell(0, 0).value
         max_date = None
         max_row = None
         for nrow in range(2, sheet.nrows):
             row = sheet.row(nrow)
-            meta = data.new_metadata(file.name, nrow)
+            meta = data.new_metadata(filename, nrow)
             entries.append(self.entry_from_row(meta, row))
             date = self.date_from_row(row)
             if max_date is None or date > max_date:
                 max_date = date
                 max_row = row
         if max_row is not None:
-            amount = data.Amount(self.get_number(max_row[self.BALANCE_COL]), self.get_currency(max_row[self.BALANCE_CURRENCY_COL]))
+            amount = data.Amount(
+                self.get_number(max_row[self.BALANCE_COL]),
+                self.get_currency(max_row[self.BALANCE_CURRENCY_COL]),
+            )
             entries.append(
                 data.Balance(
-                    data.new_metadata(file.name, 0),
+                    data.new_metadata(filename, 0),
                     max_date.date() + datetime.timedelta(days=1),
                     self.card_to_account_map[max_row[self.CARD_COL].value],
                     amount,
@@ -87,7 +94,9 @@ class Importer(IdentifyMixin, ImporterProtocol):
         dt = self.date_from_row(row)
         meta["time"] = row[self.TIME_COL].value
         meta["category"] = row[self.CATEGORY_COL].value
-        account = self.card_to_account_map.get(row[self.CARD_COL].value, self.unknown_account)
+        account = self.card_to_account_map.get(
+            row[self.CARD_COL].value, self.unknown_account
+        )
         num = self.get_number(row[self.TRANSACTION_AMOUNT_COL])
         currency = self.get_currency(row[self.TRANSACTION_CURRENCY_COL])
         card_num = self.get_number(row[self.CARD_CURRENCY_AMOUNT_COL])
@@ -114,3 +123,18 @@ class Importer(IdentifyMixin, ImporterProtocol):
             data.EMPTY_SET,
             postings,
         )
+
+
+def get_test_importer():
+    return Importer(
+        {
+            "1234": "Assets:Privatbank:Universal",
+            "5678": "Assets:Privatbank:Social",
+        }
+    )
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

@@ -9,13 +9,14 @@ import dateutil.parser
 import os
 import openpyxl
 
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     matchers = [
         ("filename", "pumb"),
         ("mime", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
@@ -54,12 +55,15 @@ class Importer(IdentifyMixin, ImporterProtocol):
             n = cell.value
         return data.Amount(D(n.replace(" ", "").replace(",", ".")), currency)
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "pumb"
+
+    def extract(self, filename, existing_entries=None):
         entries = []
-        workbook = openpyxl.load_workbook(file.name)
+        workbook = openpyxl.load_workbook(filename)
         sheet = workbook.worksheets[0]
         assert "Виписка по операціям" in sheet.cell(7, 1).value
-        account_currency = os.path.basename(file.name.split("-")[1]).upper()
+        account_currency = os.path.basename(filename.split("-")[1]).upper()
         account = self.account_config[account_currency]
         date_row_seen = False
         balance_end_date = None
@@ -72,7 +76,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
                     balance_end_date = dateutil.parser.parse(row[1].value.split(" - ")[-1], dayfirst=True)
                 if row[0].value == "Баланс на кінець періоду":
                     balance_entry = data.Balance(
-                        data.new_metadata(file.name, i+1),
+                        data.new_metadata(filename, i+1),
                         balance_end_date.date() + datetime.timedelta(days=1),
                         account,
                         self.get_amount(row[1], account_currency),
@@ -82,7 +86,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 continue
             if row[0].value == "ВСЬОГО":
                 break
-            meta = data.new_metadata(file.name, i+1)
+            meta = data.new_metadata(filename, i+1)
             entries.append(self.entry_from_row(meta, account, row))
         if balance_entry is not None:
             entries.append(balance_entry)
@@ -130,3 +134,16 @@ class Importer(IdentifyMixin, ImporterProtocol):
             data.EMPTY_SET,
             postings,
         )
+
+def get_test_importer():
+    return Importer(
+        account_config={
+            "UAH": "Assets:Pumb:Cash:UAH",
+            "EUR": "Assets:EUR:Pumb",
+        }
+    )
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

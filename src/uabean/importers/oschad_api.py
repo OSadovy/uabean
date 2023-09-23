@@ -18,21 +18,23 @@ This module supports two types of authorizations:
 import dateutil.parser
 from datetime import date, timedelta
 import getpass
-#import json
+
+# import json
 import os
 import sys
 import re
 import requests
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
 
 
 API_BASE_URL = "https://online.oschadbank.ua/wb/api/v2"
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     matchers = [
         ("filename", "oschadbank"),
     ]
@@ -43,7 +45,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
 
     def __init__(
         self,
-        account_config,
+        account_config: dict[str, str],
         fees_account="Expenses:Fees:Oschadbank",
         min_date=date(2019, 1, 1),
     ):
@@ -143,7 +145,10 @@ class Importer(IdentifyMixin, ImporterProtocol):
         response.raise_for_status()
         return response.json()
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "oschadbank"
+
+    def extract(self, filename, existing_entries=None):
         self._login()
         self._contracts = self._get_contracts()
         contract_number_to_id = {c["number"]: c["id"] for c in self._contracts}
@@ -254,3 +259,16 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 transaction.postings.append(
                     data.Posting(account, None, None, None, None, None)
                 )
+
+
+def get_test_importer():
+    return Importer(
+        {
+            "1234567890": "Assets:Oschadbank:Cash:UAH",
+        }
+    )
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

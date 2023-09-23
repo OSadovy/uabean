@@ -5,13 +5,13 @@ import os
 from beancount.core.data import Transaction
 
 
-def detect_transfers(new_entries_list, existing_entries):
+def detect_transfers(extracted, existing_entries):
     """Merges transactions with single posting that happened close to each other
     in time and have the same absolute value.
     Catches transfers from one card to another within the same bank etc.
     """
     possible_transfers = defaultdict(list)
-    for _key, new_entries in new_entries_list:
+    for filename, new_entries, account, importer in extracted:
         for entry in new_entries[:]:
             if not isinstance(entry, Transaction):
                 continue
@@ -25,7 +25,7 @@ def detect_transfers(new_entries_list, existing_entries):
                     break
             if not found:
                 possible_transfers[k].append((v, entry))
-    return new_entries_list
+    return extracted
 
 
 def get_transfer_info(entry):

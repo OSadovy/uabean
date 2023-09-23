@@ -9,13 +9,14 @@ import dateutil.parser
 import itertools
 import io
 import tarfile
-from beancount.ingest.importer import ImporterProtocol
+import beangulp
 from beancount.core.amount import Amount
 from beancount.core.number import D
-from beancount.core import data
+from beancount.core import data, flags
 
 
-class Importer(ImporterProtocol):
+class Importer(beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     def __init__(
         self,
         spot_wallet_account="Assets:Binance:Spot",
@@ -36,10 +37,10 @@ class Importer(ImporterProtocol):
         self.income_distributions_account = income_distributions_account
         super().__init__(**kwargs)
 
-    def identify(self, file):
-        if not (file.name.endswith(".tar.gz") or file.name.endswith(".csv")):
+    def identify(self, filename):
+        if not (filename.endswith(".tar.gz") or filename.endswith(".csv")):
             return False
-        return self.get_csv_reader(file).fieldnames == [
+        return self.get_csv_reader(filename).fieldnames == [
             "User_ID",
             "UTC_Time",
             "Account",
@@ -49,31 +50,31 @@ class Importer(ImporterProtocol):
             "Remark",
         ]
 
-    def get_csv_reader(self, file):
-        if file.name.endswith(".csv"):
-            return csv.DictReader(open(file.name, errors="ignore"))
-        elif file.name.endswith(".tar.gz"):
-            tar = tarfile.open(file.name, "r:gz")
+    def get_csv_reader(self, filename):
+        if filename.endswith(".csv"):
+            return csv.DictReader(open(filename, errors="ignore"))
+        elif filename.endswith(".tar.gz"):
+            tar = tarfile.open(filename, "r:gz")
             for tarinfo in tar:
                 f = tar.extractfile(tarinfo.name)
                 return csv.DictReader(io.TextIOWrapper(f, "utf-8"))
 
-    def file_account(self, _):
-        return ":".join(self.spot_wallet_account.split(":")[:-1])
+    def account(self, _):
+        return "_".join(p.lower() for p in self.spot_wallet_account.split(":")[1:-1])
 
     def parse_date(self, s):
         return dateutil.parser.parse(s)
 
-    def extract(self, file, existing_entries=None):
+    def extract(self, filename, existing_entries=None):
         entries = []
         prev_rows = []
-        reader = self.get_csv_reader(file)
+        reader = self.get_csv_reader(filename)
         for _, rows in itertools.groupby(reader, key=lambda r: r["UTC_Time"]):
             lst_rows = list(rows)
             if {row["Operation"] for row in lst_rows} == {"Transaction Related"}:
                 lst_rows = prev_rows + lst_rows
                 entries.pop(-1)
-            meta = data.new_metadata(file.name, reader.line_num)
+            meta = data.new_metadata(filename, reader.line_num)
             transaction = self.transaction_from_rows(lst_rows, meta)
             prev_rows = lst_rows
             entries.append(transaction)
@@ -179,7 +180,7 @@ class Importer(ImporterProtocol):
                 narration = f"Sell {-quantity} {coin}"
             else:
                 narration = f"Buy {quantity} {coin}"
-        elif accounts == {"P2P"}:
+        elif accounts == {"P2p"}:
             narration = rows[0]["Operation"]
             postings = [
                 data.Posting(
@@ -355,3 +356,13 @@ def is_referal_row(row):
 
 def is_fee_row(row):
     return row["Operation"] == "Fee"
+
+
+def get_test_importer():
+    return Importer()
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

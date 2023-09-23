@@ -5,13 +5,14 @@ import dateutil.parser
 import re
 import xlrd
 
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     matchers = [
         ("filename", "Рух по рахунку_"),
         ("mime", "application/vnd.ms-excel"),
@@ -38,11 +39,14 @@ class Importer(IdentifyMixin, ImporterProtocol):
     def get_number(cell):
         return D(str(cell.value))
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "procreditbank"
+
+    def extract(self, filename, existing_entries=None):
         entries = []
-        workbook = xlrd.open_workbook(file.name)
+        workbook = xlrd.open_workbook(filename)
         sheet = workbook.sheet_by_index(0)
-        #assert 'Банк: АТ "ПроКредит Банк"' in sheet.cell(1, 12).value
+        # assert 'Банк: АТ "ПроКредит Банк"' in sheet.cell(1, 12).value
         account_number = sheet.cell(4, 1).value
         assert account_number.startswith("Рахунок:")
         account_number = account_number.split(" ", 1)[1]
@@ -56,16 +60,20 @@ class Importer(IdentifyMixin, ImporterProtocol):
         header_cols = None
         for nrow in range(10, sheet.nrows):
             row = sheet.row(nrow)
-            meta = data.new_metadata(file.name, nrow)
+            meta = data.new_metadata(filename, nrow)
             if row[1].value == "Операції по рахунку":
                 header = "account_ops"
                 continue
             elif row[1].value == "Операції по картам":
                 header = "card_ops"
                 continue
-            elif cell_index := find_cell_starting_with(row, "Вихідний залишок по рахунку на кінець періоду"):
+            elif cell_index := find_cell_starting_with(
+                row, "Вихідний залишок по рахунку на кінець періоду"
+            ):
                 entries.append(
-                    self.balance_from_row(meta, account, account_currency, row, cell_index)
+                    self.balance_from_row(
+                        meta, account, account_currency, row, cell_index
+                    )
                 )
                 break
             elif str(row[1].value).startswith("Дата "):
@@ -112,7 +120,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
 
     def balance_from_row(self, meta, account, currency, row, index):
         dt = dateutil.parser.parse(row[index].value.split(" ")[-1], dayfirst=True)
-        num = self.get_number(next(cell for cell in row[index + 1:] if cell.value))
+        num = self.get_number(next(cell for cell in row[index + 1 :] if cell.value))
         return data.Balance(
             meta,
             dt.date(),
@@ -154,7 +162,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
             postings.append(
                 data.Posting(self.deposit_income_account, None, None, None, None, None)
             )
-        payee = row_dict["Реквізити контрагента"].split('  ')[0]
+        payee = row_dict["Реквізити контрагента"].split("  ")[0]
         return data.Transaction(
             meta,
             date,
@@ -190,8 +198,24 @@ class Importer(IdentifyMixin, ImporterProtocol):
             postings,
         )
 
+
 def find_cell_starting_with(row, s):
     for i, cell in enumerate(row):
         if str(cell.value).startswith(s):
             return i
     return None
+
+
+def get_test_importer():
+    return Importer(
+        {
+            ("UAH", "26000000000000"): "Assets:Procreditbank:Cash:UAH",
+            ("USD", "26000000000000"): "Assets:Procreditbank:Cash:USD",
+        },
+    )
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

@@ -9,16 +9,69 @@ import datetime
 import dateutil.parser
 import re
 import requests
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 mcc_codes_url = "https://raw.githubusercontent.com/Oleksios/Merchant-Category-Codes/main/Without%20groups/mcc-en.json"
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     DATE_COL = 0
     DESCRIPTION_COL = 1
     MCC_COL = 2
@@ -35,7 +88,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
 
     def __init__(
         self,
-        account_config,
+        account_config: dict[tuple[str, str], str],
         cashback_income_account="Income:Cashback:Monobank",
         cashback_receivable_account="Assets:Monobank:Receivable:Cashback",
         taxes_expense_account="Expenses:Taxes",
@@ -59,27 +112,30 @@ class Importer(IdentifyMixin, ImporterProtocol):
         codes = requests.get(mcc_codes_url).json()
         self.mcc_codes = {c["mcc"]: c["shortDescription"] for c in codes}
 
-    def get_csv_reader(self, file):
-        return csv.reader(open(file.name))
+    def get_csv_reader(self, filename):
+        return csv.reader(open(filename))
 
-    def file_account(self, file):
+    def file_account(self, filename):
         # example: monobank-black-UAH_22-10-22_14-24-57.csv
-        parts = file.name.split("_")[0].split("-")
+        parts = filename.split("_")[0].split("-")
         return self.account_config[(parts[1], parts[2])]
 
-    def extract(self, file, existing_entries=None):
+    def account(self, _):
+        return "monobank"
+
+    def extract(self, filename, existing_entries=None):
         self._download_mcc_codes()
         entries = []
-        reader = self.get_csv_reader(file)
+        reader = self.get_csv_reader(filename)
         header = next(reader)
-        account = self.file_account(file)
+        account = self.file_account(filename)
         account_currency = re.search(r"\((\w+)\)", header[self.AMOUNT_COL]).group(1)
         cashback_currency = re.search(r"\((\w+)\)", header[self.CASHBACK_COL]).group(1)
         for i, row in enumerate(reader, 2):
-            meta = data.new_metadata(file.name, i)
+            meta = data.new_metadata(filename, i)
             entries.append(self.entry_from_row(meta, account, account_currency, cashback_currency, row))
         if entries:
-            meta = data.new_metadata(file.name, i)
+            meta = data.new_metadata(filename, i)
             entries.append(
                 data.Balance(
                     meta,
@@ -161,3 +217,17 @@ class Importer(IdentifyMixin, ImporterProtocol):
 
     def date_from_str(self, s):
         return dateutil.parser.parse(s, dayfirst=True)
+
+def get_test_importer():
+    return Importer(
+        {
+            ("black", "UAH"): "Assets:Monobank:Black:UAH",
+            ("black", "USD"): "Assets:Monobank:Black:USD",
+            ("white", "UAH"): "Assets:Monobank:White:UAH",
+        }
+    )
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

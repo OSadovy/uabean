@@ -8,16 +8,17 @@ import csv
 import dateutil.parser
 import re
 import requests
-from beancount.ingest.importer import ImporterProtocol
-from beancount.ingest.importers.mixins.identifier import IdentifyMixin
-from beancount.core import data
+import beangulp
+from uabean.importers.mixins import IdentifyMixin
+from beancount.core import data, flags
 from beancount.core.number import D
 
 
 mcc_codes_url = "https://raw.githubusercontent.com/Oleksios/Merchant-Category-Codes/main/Without%20groups/mcc-en.json"
 
 
-class Importer(IdentifyMixin, ImporterProtocol):
+class Importer(IdentifyMixin, beangulp.Importer):
+    FLAG = flags.FLAG_OKAY
     matchers = [
         ("content", "Виписка за рахунком;;;;;;;"),
         ("mime", "text/csv"),
@@ -37,32 +38,31 @@ class Importer(IdentifyMixin, ImporterProtocol):
         self.mcc_codes = {}
         super().__init__(*args, **kwargs)
 
-    def get_csv_reader(self, file):
-        return csv.reader(open(file.name, encoding="windows-1251"), delimiter=";")
+    def get_csv_reader(self, filename):
+        return csv.reader(open(filename, encoding="windows-1251"), delimiter=";")
 
     def date_from_row(self, row):
         return dateutil.parser.parse(row[self.DATE_COL], dayfirst=True)
 
-    def file_date(self, file):
+    def date(self, filename):
         "Get the maximum date from the file."
-        reader = self.get_csv_reader(file)
+        reader = self.get_csv_reader(filename)
         next(reader)
         row = next(reader)
         m = re.search(r"за період (.*?) - (.*)", row[0])
         return dateutil.parser.parse(m.group(2), dayfirst=True)
 
-    def file_account(self, file):
-        reader = self.get_csv_reader(file)
-        for i in range(4):
-            row = next(reader)
-        m = re.search(r"Рахунок (UA\d+)", row[0])
-        return self.account_config[m.group(1)]
+    def account(self, _):
+        return "sensebank"
 
-    def extract(self, file, existing_entries=None):
-        entries = []
+    def _download_mcc_codes(self):
         codes = requests.get(mcc_codes_url).json()
         self.mcc_codes = {c["mcc"]: c["shortDescription"] for c in codes}
-        reader = self.get_csv_reader(file)
+
+    def extract(self, filename, existing_entries=None):
+        entries = []
+        self._download_mcc_codes()
+        reader = self.get_csv_reader(filename)
         for _ in range(4):
             row = next(reader)
         m = re.search(r"Рахунок (\w+) \((\w+)\)", row[0])
@@ -73,7 +73,7 @@ class Importer(IdentifyMixin, ImporterProtocol):
                 "Дата і час"
             ):
                 continue
-            meta = data.new_metadata(file.name, reader.line_num)
+            meta = data.new_metadata(filename, reader.line_num)
             entries.append(self.entry_from_row(meta, account, currency, row))
         return entries
 
@@ -106,3 +106,17 @@ class Importer(IdentifyMixin, ImporterProtocol):
             data.EMPTY_SET,
             [data.Posting(account, units, None, None, None, None)],
         )
+
+
+def get_test_importer():
+    return Importer(
+        {
+            "UA111111111111111111111111111": "Assets:Sensebank:Cash:UAH",
+        }
+    )
+
+
+if __name__ == "__main__":
+    from beangulp.testing import main
+
+    main(get_test_importer())

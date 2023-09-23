@@ -1,0 +1,5 @@
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Outstanding Loan,Date / Time
+TRANS001,Withdrawal,USDT,-10050.20000000,USDT,10050.20000000,$10054.50,"approved / USDT withdrawal",$0.00,2022-11-05 19:32:15
+TRANS002,Interest,USDC,10.50000000,USDC,10.50000000,$10.50,"approved / USDC Interest Earned",$0.00,2022-10-25 08:05:12
+TRANS003,Exchange,BUSD,-2050.10000000,USDC,2042.50000000,$2042.50,"approved / Exchange Binance USD to USD Coin",$0.00,2022-10-12 20:50:11
+TRANS004,Deposit,BUSD,2050.10000000,BUSD,2050.10000000,$2050.10,"approved / 0xf644abcd1234c1c1f1176abc870a1a1234567890abcd1234567890abcde",$0.00,2022-10-11 20:40:40
