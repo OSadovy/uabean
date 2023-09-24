@@ -14,7 +14,7 @@ This repository contains various goodies for [Beancount], a text-based double-en
 
 ## Installation
 ```
-$ pip install https://github.com/osadovy/uabean
+$ pip install git+https://github.com/osadovy/uabean
 ```
 Extra scripts are not installed by default. If you want to use them, look into each script docstring to see its dependencies.
 
