@@ -39,7 +39,7 @@ The importers are created using [Beangulp] framework. To use them, you need to i
 ## Downloaders
 These automate receiving of account statements to be further processed by importers.
 
-### Wise 
+### Wise
 Requires `WISE_API_TOKEN` environment variable (details [here][wise-api-token]), as well as presence of `wise-private.pem` file containing private key registered with Wise for signing SCA requests . [See here][wise-signing] for instructions how to generate your key and register its public part with Wise.
 ```
 usage: uabean.downloaders.wise [-h] [--start-date START_DATE] [--end-date END_DATE] [-t {business,personal}]
