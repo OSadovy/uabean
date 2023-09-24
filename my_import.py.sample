@@ -1,0 +1,128 @@
+import sys
+from os import path
+
+# To allow local importers
+sys.path.insert(0, path.join(path.dirname(__file__)))
+
+import beangulp
+
+
+from uabean.importers import (
+    wise_json,
+    alfa_business,
+    ukrsib_business,
+    tronscan,
+    nexo,
+    ibkr,
+    binance,
+    monobank,
+    sensebank,
+    privatbank_xls,
+    oschad_api,
+    pumb_xls,
+    procredit_business,
+    procredit_xls,
+)
+
+from uabean.hooks import detect_transfers
+
+
+CONFIG = [
+    wise_json.Importer("Assets:Wise:Business:{currency}"),
+    wise_json.Importer("Assets:Wise:Personal"),
+    alfa_business.Importer(
+        {
+            ("GBP", "UA111111111111111111111111111"): "Assets:Alfabank:Business:GBP",
+            (
+                "GBP",
+                "UA222222222222222222222222222",
+            ): "Assets:Alfabank:Business:Transit",
+            ("USD", "UA222222222222222222222222222"): "Assets:Alfabank:Business:USD",
+            ("USD", "UA111111111111111111111111111"): "Assets:Alfabank:Business:USD",
+            ("UAH", "UA111111111111111111111111111"): "Assets:Alfabank:Business:UAH",
+            (
+                "EUR",
+                "UA222222222222222222222222222",
+            ): "Assets:Alfabank:Business:Transit",
+            ("EUR", "UA111111111111111111111111111"): "Assets:Alfabank:Business:EUR",
+        },
+        "Expenses:Fees:Alfabank",
+    ),
+    tronscan.Importer("Assets:Crypto:Tron", "USDT"),
+    nexo.Importer("Assets:Crypto:Nexo", "Income:Investments:Nexo"),
+    ibkr.Importer(),
+    binance.Importer(
+        spot_wallet_account="Assets:Crypto:Binance:Cash",
+        fees_account="Expenses:Fees:Crypto:Binance",
+        p2p_account="Assets:Crypto:Binance:P2P",
+        savings_account="Assets:Crypto:Binance:Savings",
+        income_interest_account="Income:Crypto:Binance:Interest",
+        income_referal_account="Income:Crypto:Binance:Referal",
+        income_distributions_account="Income:Crypto:Binance:Distribution",
+    ),
+    monobank.Importer(
+        {
+            ("black", "UAH"): "Liabilities:Monobank:Black",
+            ("black", "USD"): "Assets:Monobank:Black",
+            ("white", "UAH"): "Assets:Monobank:White",
+            # ("yellow", "UAH"): "Assets:Monobank:Yellow",
+        }
+    ),
+    sensebank.Importer(
+        {
+            "UA333333333333333333333333333": "Assets:Alfabank:Black:UAH",
+            "UA444444444444444444444444444": "Assets:Alfabank:Black:USD",
+        }
+    ),
+    privatbank_xls.Importer(
+        {
+            "Картка Універсальна Голд (****1111)": "Liabilities:Privatbank:Universal",
+            "Інтернет картка (****2222)": "Assets:Privatbank:Virtual",
+            "Картка для виплат Голд (****3333)": "Assets:Privatbank:Social",
+            "Картка Універсальна Голд (****4444)": "Liabilities:Privatbank:Universal",
+        }
+    ),
+    ukrsib_business.Importer(
+        {
+            ("GBP", "UA555555555555555555555555555"): "Assets:Ukrsibbank:Business:GBP",
+            ("UAH", "UA666666666666666666666666666"): "Assets:Ukrsibbank:Business:UAH",
+        },
+        "Expenses:Fees:Ukrsibbank",
+    ),
+    oschad_api.Importer(
+        {
+            "UA777777777777777777777777777": "Assets:Oschadbank:UAH",
+            "1111********2222": "Assets:Oschadbank:UAH",
+            "3333********4444": "Assets:Oschadbank:UAH",
+        }
+    ),
+    pumb_xls.Importer({"UAH": "Assets:Pumbbank:Cash"}),
+    procredit_business.Importer(
+        {
+            (
+                "UAH",
+                "UA888888888888888888888888888",
+            ): "Assets:Procreditbank:Business:UAH",
+            (
+                "GBP",
+                "UA888888888888888888888888888",
+            ): "Assets:Procreditbank:Business:GBP",
+            (
+                "GBP",
+                "UA999999999999999999999999999",
+            ): "Assets:Procreditbank:Business:Transit",
+        },
+        "Expenses:Fees:Procreditbank",
+    ),
+    procredit_xls.Importer(
+        {
+            ("UAH", "UA000000000000000000000000000"): "Assets:Procreditbank:Cash:UAH",
+            ("USD", "UA000000000000000000000000000"): "Assets:Procreditbank:Cash:USD",
+        }
+    ),
+]
+
+
+if __name__ == "__main__":
+    ingest = beangulp.Ingest(CONFIG, [detect_transfers])
+    ingest()

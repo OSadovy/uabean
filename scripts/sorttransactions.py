@@ -1,3 +1,8 @@
+"""Sorts transactions in a ledger file by date and time.
+
+requires: autobean <https://github.com/SEIAROTg/autobean/tree/master/autobean/refactor>
+"""
+
 import copy
 import datetime
 import sys

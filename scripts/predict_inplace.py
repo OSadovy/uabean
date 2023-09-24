@@ -1,3 +1,13 @@
+"""Allows to predict postings of a transaction using machine learning.
+Adds the predicted postings inline to the transaction.
+
+This is based on smart_importer project but instead of augmenting importers, it allows to run the prediction on already imported data.
+
+Requires:
+* autobean <https://github.com/SEIAROTg/autobean/tree/master/autobean/refactor>
+* smart_importer <https://github.com/beancount/smart_importer>
+"""
+
 import argparse
 import copy
 import datetime
