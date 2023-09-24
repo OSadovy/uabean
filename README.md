@@ -1,7 +1,6 @@
 <!-- These are examples of badges you might want to add to your README:
 
-[![Built Status](https://api.cirrus-ci.com/github/<USER>/uabean.svg?branch=main)](https://cirrus-ci.com/github/<USER>/uabean)
-[![Coveralls](https://img.shields.io/coveralls/github/<USER>/uabean/main.svg)](https://coveralls.io/r/<USER>/uabean)
+[![Coveralls](https://img.shields.io/coveralls/github/osadovy/uabean/main.svg)](https://coveralls.io/r/<USER>/uabean)
 [![PyPI-Server](https://img.shields.io/pypi/v/uabean.svg)](https://pypi.org/project/uabean/)
 -->
 
