@@ -18,7 +18,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
     FLAG = flags.FLAG_OKAY
 
     def __init__(self, account, fees_account="Expenses:Fees:Wise", **kwargs):
-        self.account = account
+        self._account = account
         self.fees_account = fees_account
         if "business" in account.lower():
             type_pattern = "business"
@@ -35,7 +35,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         parts = filename.split("-")
         account_type = parts[1].capitalize()
         currency = parts[-1].split(".", 1)[0]
-        return self.account.format(type=account_type, currency=currency)
+        return self._account.format(type=account_type, currency=currency)
 
     def account(self, _):
         return "wise"

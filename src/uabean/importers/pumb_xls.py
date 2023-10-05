@@ -29,7 +29,8 @@ class Importer(IdentifyMixin, beangulp.Importer):
     SETTLE_DATE_COL = 4
     ACCOUNT_CURRENCY_AMOUNT_COL = 5
     FEE_COL = 6
-    POS_PAYMENT_STR = "Oперация покупки через POS-терминал"
+    POS_PAYMENT_STR_RU = "Oперация покупки через POS-терминал"
+    POS_PAYMENT_STR_UA = "Купівля через POS-термінал"
     CASHBACK_STR = "Виплата винагороди кешбек ПУМБ"
 
     def __init__(
@@ -99,8 +100,10 @@ class Importer(IdentifyMixin, beangulp.Importer):
         dt = self.datetime_from_row(row)
         meta["time"] = dt.strftime("%H:%M")
         narration = row[self.DESCRIPTION_COL].value
-        if self.POS_PAYMENT_STR in narration:
+        if self.POS_PAYMENT_STR_RU in narration:
             narration = narration.split("; ")[-1]
+        elif self.POS_PAYMENT_STR_UA in narration:
+            narration = " ".join(narration.split("; ")[0].split()[4:])
         account_currency_amount = self.get_amount(row[self.ACCOUNT_CURRENCY_AMOUNT_COL])
         transaction_currency_amount = self.get_amount(
             row[self.TRANSACTION_CURRENCY_AMOUNT_COL]
