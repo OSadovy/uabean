@@ -1,0 +1,9 @@
+"txid","refid","time","type","subtype","aclass","asset","amount","fee","balance"
+"","TX-ID1","2000-01-01 08:48:50","deposit","","currency","USDC",1000.00000000,0.00000000,""
+"TX-ID2","TX-ID1","2000-01-01 08:57:47","deposit","","currency","USDC",1000.00000000,0.00000000,1000.00000000
+"","TX-id3","2000-01-01 09:00:21","withdrawal","","currency","USDC",-1000.00000000,0.00000000,""
+"TX-id4","TX-ID3","2000-01-01 09:00:22","transfer","spottostaking","currency","USDC",-1000.00000000,0.00000000,0.00000000
+"","TX-ID5","2000-01-01 09:00:30","deposit","","currency","USDC.M",1000.00000000,0.00000000,""
+"TX-ID6","TX-ID5","2000-01-01 09:00:32","transfer","stakingfromspot","currency","USDC.M",1000.00000000,0.00000000,1000.00000000
+"","TX-ID7","2001-01-02 14:30:21","deposit","","currency","USDC.M",1.12345678,0.00000000,""
+"TX-ID8","TX-ID7","2000-01-02 14:33:28","staking","","currency","USDC.M",1.12345678,0.00000000,1001.12345678

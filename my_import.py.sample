@@ -22,6 +22,7 @@ from uabean.importers import (
     pumb_xls,
     procredit_business,
     procredit_xls,
+    kraken,
 )
 
 from uabean.hooks import detect_transfers
@@ -120,6 +121,7 @@ CONFIG = [
             ("USD", "UA000000000000000000000000000"): "Assets:Procreditbank:Cash:USD",
         }
     ),
+    kraken.Importer(),
 ]
 
 
