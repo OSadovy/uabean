@@ -88,6 +88,8 @@ class Importer(IdentifyMixin, beangulp.Importer):
                         None,
                     )
                 continue
+            if row[3].value and row[3].value.strip() == "Нет операций":
+                continue
             if row[0].value == "ВСЬОГО":
                 break
             meta = data.new_metadata(filename, i + 1)

@@ -70,8 +70,10 @@ class Importer(IdentifyMixin, beangulp.Importer):
         account = self.account_config[m.group(1)]
         currency = m.group(2)
         for row in reader:
-            if row[0].startswith("Деталізація операцій") or row[0].startswith(
-                "Дата і час"
+            if (
+                row[0].startswith("Деталізація операцій")
+                or row[0].startswith("Дата і час")
+                or row[0].startswith("Вклади гарантуються ")
             ):
                 continue
             meta = data.new_metadata(filename, reader.line_num)
