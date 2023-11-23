@@ -267,7 +267,7 @@ class MonobankClient:
             obj["id"],
             obj["sendId"],
             self.get_currency(obj["currencyCode"]),
-            obj["cashbackType"],
+            obj.get("cashbackType"),
             self.get_decimal(obj["balance"]),
             self.get_decimal(obj["creditLimit"]),
             obj["type"],

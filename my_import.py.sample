@@ -66,6 +66,7 @@ CONFIG = [
             ("black", "UAH"): "Liabilities:Monobank:Black",
             ("black", "USD"): "Assets:Monobank:Black",
             ("white", "UAH"): "Assets:Monobank:White",
+            ("fop", "UAH"): "Assets:Monobank:FOP",
             # ("yellow", "UAH"): "Assets:Monobank:Yellow",
         }
     ),

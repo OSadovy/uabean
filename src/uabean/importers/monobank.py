@@ -102,7 +102,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return entries
 
     def entry_from_row(self, meta, account, account_currency, cashback_currency, row):
-        meta["category"] = self.mcc_codes[row[self.MCC_COL]]
+        meta["category"] = self.mcc_codes[row[self.MCC_COL].zfill(4)]
         postings = []
         dt = self.date_from_str(row[self.DATE_COL])
         meta["time"] = dt.time().strftime("%H:%M:%S")
