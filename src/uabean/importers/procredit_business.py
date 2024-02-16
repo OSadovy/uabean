@@ -1,7 +1,8 @@
 """Imports statement csv files exported from Procredit Business Online web app.
 
-The CSV header is the following:
+The CSV header is one of the following:
 ЄДРПОУ;Код ID НБУ;Рахунок;Валюта;Дата операції;Код операції;МФО банка;Назва банка;Рахунок кореспондента;ЄДРПОУ кореспондента;Кореспондент;Номер документа;Дата документа;Дебет;Кредит;Призначення платежу;Гривневе покриття
+ЄДРПОУ;Код ID НБУ;Рахунок;Валюта;Дата операції;Код операції;Код ID НБУ;Надавач платіжних послуг;Рахунок кореспондента;ЄДРПОУ кореспондента;Кореспондент;Номер документа;Дата документа;Дебет;Кредит;Призначення платежу;Гривневе покриття
 """
 
 import csv
@@ -18,7 +19,7 @@ from uabean.importers.mixins import IdentifyMixin
 
 class Importer(IdentifyMixin, beangulp.Importer):
     matchers = [
-        ("content", __doc__.split("\n")[-2]),
+        ("content", __doc__.split("\n")[-2][:59]),
         ("mime", "text/csv"),
     ]
     fee_regexes = ("Сплата комісії", "Комісія за переказ в національній валюті")

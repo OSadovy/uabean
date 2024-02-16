@@ -24,7 +24,9 @@ class Importer(IdentifyMixin, beangulp.Importer):
         ("content", "Виписка за рахунком;;;;;;;"),
         ("mime", "text/csv"),
     ]
-    converter = lambda unused, fname: open(fname, encoding="windows-1251").read()
+    converter = lambda unused, fname: open(
+        fname, encoding="windows-1251", errors="replace"
+    ).read()
     DATE_COL = 0
     STATUS_COL = 1
     TYPE_COL = 2
