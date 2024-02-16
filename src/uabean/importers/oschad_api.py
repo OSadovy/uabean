@@ -14,7 +14,6 @@ This module supports two types of authorizations:
    provide the username and password, respectively.
 """
 
-
 import getpass
 
 # import json

@@ -79,9 +79,9 @@ class Importer(IdentifyMixin, beangulp.Importer):
         meta["time"] = dt.time().strftime("%H:%M:%S")
         meta["src_id"] = t["referenceNumber"]
         if t["exchangeDetails"] is not None:
-            meta[
-                "converted"
-            ] = f'{t["exchangeDetails"]["toAmount"]["value"]} {t["exchangeDetails"]["toAmount"]["currency"]} ({t["exchangeDetails"]["rate"]})'
+            meta["converted"] = (
+                f'{t["exchangeDetails"]["toAmount"]["value"]} {t["exchangeDetails"]["toAmount"]["currency"]} ({t["exchangeDetails"]["rate"]})'
+            )
         postings = [
             Posting(account, amount_from_obj(t["amount"]), None, None, None, None)
         ]

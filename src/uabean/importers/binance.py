@@ -266,9 +266,11 @@ class Importer(beangulp.Importer):
                 units = amount_from_row(row)
                 postings.append(
                     data.Posting(
-                        self.spot_wallet_account
-                        if units.number < 0
-                        else self.savings_account,
+                        (
+                            self.spot_wallet_account
+                            if units.number < 0
+                            else self.savings_account
+                        ),
                         units,
                         None,
                         None,

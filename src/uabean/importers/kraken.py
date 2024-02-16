@@ -4,7 +4,6 @@ The CSV header is the following:
 "txid","refid","time","type","subtype","aclass","asset","amount","fee","balance"
 """
 
-
 import csv
 
 import beangulp

@@ -5,7 +5,6 @@ Expects MONOBANK_TOKEN env var to be set to the valid monobank API token.
 Run with --help for usage.
 """
 
-
 import argparse
 import csv
 import datetime
