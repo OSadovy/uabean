@@ -51,7 +51,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
 
     @classmethod
     def get_currency(cls, cell):
-        return cls.CURRENCY_MAP[cell.value]
+        return cls.CURRENCY_MAP.get(cell.value, cell.value)
 
     @staticmethod
     def get_number(cell):

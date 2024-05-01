@@ -26,7 +26,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
             type_pattern = "personal"
         else:
             type_pattern = ".*?"
-        fname_pattern = "wise-" + type_pattern + r"-.*-\w{3}"
+        fname_pattern = "wise-" + type_pattern + r"-.*-\w{3}\.json"
         kwargs["matchers"] = [("filename", fname_pattern)]
         super().__init__(**kwargs)
 

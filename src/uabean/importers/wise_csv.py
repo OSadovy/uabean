@@ -5,13 +5,14 @@ from beangulp.importers.csv import Col, CSVImporter
 
 
 class Importer(CSVImporter):
-    def __init__(self, *args, **kwargs):
-        if "business" in kwargs["account"].lower():
-            fname_pattern = f"wise-business-.*-{kwargs['currency']}"
+    def __init__(self, account, currency, *args, **kwargs):
+        if "business" in account.lower():
+            fname_pattern = f"wise-business-.*-{currency}.csv"
         else:
-            fname_pattern = f"wise-personal-.*-{kwargs['currency']}"
+            fname_pattern = f"wise-personal-.*-{currency}.csv"
         kwargs["matchers"] = [("filename", fname_pattern)]
         kwargs["dateutil_kwds"] = {"dayfirst": True}
+        self.currency = currency
         super().__init__(
             {
                 Col.AMOUNT: "Amount",
@@ -20,17 +21,26 @@ class Importer(CSVImporter):
                 Col.NARRATION: "Description",
                 Col.PAYEE: "Payee Name",
             },
+            account,
+            currency,
+            categorizer=self.call_categorizer,
             *args,
+            acount=account,
             **kwargs,
         )
 
     def call_categorizer(self, txn, row):
         txn.meta["lineno"] = -txn.meta["lineno"]
-        if txn.narration == "No information":
+        # currency exchange
+        if row[8] != row[7]:
+            txn.meta["converted"] = f"{row[19]} {row[8]} ({row[9]})"
+        if txn.narration == "No information" or txn.narration.startswith(
+            "Card transaction of"
+        ):
             txn = txn._replace(narration="")
         if row[13]:  # Merchant
             txn = txn._replace(payee=row[13])
-        if row[4]:  # Description
+        if row[4] and not row[4].startswith("Card transaction of"):  # Description
             txn.meta["src_desc"] = row[4]
         txn.meta["src_id"] = row[0]  # TransferWise ID
         total_fees = D(row[18])
@@ -45,7 +55,7 @@ class Importer(CSVImporter):
                     None,
                 )
             )
-        return super().call_categorizer(txn, row)
+        return txn
 
 
 def get_test_importer():

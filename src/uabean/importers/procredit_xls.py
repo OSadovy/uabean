@@ -2,6 +2,7 @@
 """
 
 import re
+from datetime import timedelta
 
 import beangulp
 import dateutil.parser
@@ -120,12 +121,14 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return result
 
     def balance_from_row(self, meta, account, currency, row, index):
-        dt = dateutil.parser.parse(row[index].value.split(" ")[-1], dayfirst=True)
+        dt = dateutil.parser.parse(
+            row[index].value.split(" ")[-1], dayfirst=True
+        ) + timedelta(days=1)
         num = self.get_number(
             next(
                 cell
                 for cell in row[index + 1 :]
-                if (cell.value is not None or cell.value != "")
+                if (cell.value is not None and cell.value != "")
             )
         )
         return data.Balance(
