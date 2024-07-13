@@ -52,6 +52,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         wht_account="Expenses:Investments:IB:WithholdingTax",
         fees_account="Expenses:IB:Fees",
         pnl_account="Income:Investments:IB:{symbol}:PnL",
+        document_archiving_account="ib",
         use_existing_holdings=True,
         **kwargs,
     ):
@@ -62,6 +63,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         self.wht_account = wht_account
         self.fees_account = fees_account
         self.bnl_account = pnl_account
+        self.document_archiving_account = document_archiving_account
         self.use_existing_holdings = use_existing_holdings
         self.holdings_map = defaultdict(list)
         super().__init__(**kwargs)
@@ -95,7 +97,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return self.get_account_name(self.bnl_account, symbol=symbol)
 
     def account(self, filename):
-        return "ib"
+        return self.document_archiving_account
 
     def extract(self, filename, existing_entries=None):
         if self.use_existing_holdings and existing_entries is not None:
