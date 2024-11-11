@@ -11,7 +11,7 @@ from collections import defaultdict
 import beangulp
 from beancount.core import data, flags
 from beancount.core.number import D
-from beancount.utils.date_utils import parse_date_liberally
+from dateutil.parser import parse as parse_date
 
 from uabean.importers.mixins import IdentifyMixin
 
@@ -34,7 +34,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return csv.DictReader(open(filename, encoding="windows-1251"), delimiter=";")
 
     def get_date_from_row(self, row):
-        return parse_date_liberally(row[self.DATE_FIELD], dict(dayfirst=True))
+        return parse_date(row[self.DATE_FIELD], dayfirst=True).date()
 
     def get_account_from_row(self, row):
         k = (row["Валюта"], row["Рахунок"])

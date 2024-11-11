@@ -10,7 +10,7 @@ import beangulp
 from beancount.core import data, flags
 from beancount.core.amount import Amount
 from beancount.core.number import D
-from beancount.utils.date_utils import parse_date_liberally
+from dateutil.parser import parse as parse_date
 
 from uabean.importers.mixins import IdentifyMixin
 
@@ -30,7 +30,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
         return csv.DictReader(open(filename))
 
     def get_date_from_row(self, row):
-        return parse_date_liberally(row["Date / Time"])
+        return parse_date(row["Date / Time"]).date()
 
     def account(self, _):
         return "nexo"
