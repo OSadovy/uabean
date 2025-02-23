@@ -396,6 +396,7 @@ def main():
                 ),
                 "w",
                 encoding="utf-8",
+                newline="",
             ),
             quoting=csv.QUOTE_MINIMAL,
         )
