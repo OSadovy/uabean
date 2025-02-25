@@ -6,6 +6,7 @@ CSV header is as follows:
 
 import csv
 import datetime
+import os
 import re
 
 import beangulp
@@ -66,7 +67,7 @@ class Importer(IdentifyMixin, beangulp.Importer):
 
     def file_account(self, filename):
         # example: monobank-black-UAH_22-10-22_14-24-57.csv
-        parts = filename.split("_")[0].split("-")
+        parts = os.path.basename(filename).split("_")[0].split("-")
         return self.account_config[(parts[1], parts[2])]
 
     def account(self, _):
