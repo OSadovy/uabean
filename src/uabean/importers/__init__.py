@@ -4,6 +4,7 @@ from .ibkr import Importer as IBKRImporter
 from .monobank import Importer as MonobankImporter
 from .nexo import Importer as NexoImporter
 from .privatbank_xls import Importer as PrivatbankXLSImporter
+from .privatbank_xlsx import Importer as PrivatbankXLSXImporter
 from .privatbank_xml import Importer as PrivatbankXMLImporter
 from .sensebank import Importer as SensebankImporter
 from .tronscan import Importer as TronscanImporter
