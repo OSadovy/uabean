@@ -28,14 +28,19 @@ class Importer(IdentifyMixin, beangulp.Importer):
     def converter(filename):
         """Convert XLSX to text for content matching."""
         try:
-            workbook = openpyxl.load_workbook(filename)
-            sheet = workbook.worksheets[0]
-            # Get first cell content which contains the header
-            first_cell = sheet.cell(row=1, column=1).value
-            if first_cell:
-                return str(first_cell)
-        except Exception:
-            pass
+            workbook = openpyxl.load_workbook(filename, read_only=True, data_only=True)
+            try:
+                sheet = workbook.worksheets[0]
+                # Get first cell content which contains the header
+                first_cell = sheet.cell(row=1, column=1).value
+                if first_cell:
+                    return str(first_cell)
+            finally:
+                workbook.close()
+        except Exception as e:
+            # Log the error for debugging in test environments
+            import sys
+            print(f"Error in privatbank_xlsx converter: {e}", file=sys.stderr)
         return ""
     unknown_account = "Assets:Unknown"
     DATE_COL = 0
@@ -79,36 +84,39 @@ class Importer(IdentifyMixin, beangulp.Importer):
 
     def extract(self, filename, existing_entries=None):
         entries = []
-        workbook = openpyxl.load_workbook(filename)
-        sheet = workbook.worksheets[0]
-        assert "Виписка з Ваших карток за період" in sheet.cell(row=1, column=1).value
-        max_date = None
-        max_row = None
-        # Convert sheet rows to list for easier access (openpyxl uses 1-based indexing)
-        rows = list(sheet.iter_rows())
-        for nrow in range(2, len(rows)):  # Start from row 3 (index 2) like in xlrd version
-            row = rows[nrow]
-            meta = data.new_metadata(filename, nrow + 1)  # +1 for 1-based line numbers
-            entries.append(self.entry_from_row(meta, row))
-            date = self.date_from_row(row)
-            if max_date is None or date > max_date:
-                max_date = date
-                max_row = row
-        if max_row is not None:
-            amount = data.Amount(
-                self.get_number(max_row[self.BALANCE_COL]),
-                self.get_currency(max_row[self.BALANCE_CURRENCY_COL]),
-            )
-            entries.append(
-                data.Balance(
-                    data.new_metadata(filename, 0),
-                    max_date.date() + datetime.timedelta(days=1),
-                    self.card_to_account_map[max_row[self.CARD_COL].value],
-                    amount,
-                    None,
-                    None,
+        workbook = openpyxl.load_workbook(filename, read_only=True, data_only=True)
+        try:
+            sheet = workbook.worksheets[0]
+            assert "Виписка з Ваших карток за період" in sheet.cell(row=1, column=1).value
+            max_date = None
+            max_row = None
+            # Convert sheet rows to list for easier access (openpyxl uses 1-based indexing)
+            rows = list(sheet.iter_rows())
+            for nrow in range(2, len(rows)):  # Start from row 3 (index 2) like in xlrd version
+                row = rows[nrow]
+                meta = data.new_metadata(filename, nrow + 1)  # +1 for 1-based line numbers
+                entries.append(self.entry_from_row(meta, row))
+                date = self.date_from_row(row)
+                if max_date is None or date > max_date:
+                    max_date = date
+                    max_row = row
+            if max_row is not None:
+                amount = data.Amount(
+                    self.get_number(max_row[self.BALANCE_COL]),
+                    self.get_currency(max_row[self.BALANCE_CURRENCY_COL]),
                 )
-            )
+                entries.append(
+                    data.Balance(
+                        data.new_metadata(filename, 0),
+                        max_date.date() + datetime.timedelta(days=1),
+                        self.card_to_account_map[max_row[self.CARD_COL].value],
+                        amount,
+                        None,
+                        None,
+                    )
+                )
+        finally:
+            workbook.close()
         return entries
 
     def entry_from_row(self, meta, row):
