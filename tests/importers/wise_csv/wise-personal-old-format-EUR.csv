@@ -1,0 +1,5 @@
+"TransferWise ID",Date,Amount,Currency,Description,"Payment Reference","Running Balance","Exchange From","Exchange To","Exchange Rate","Payer Name","Payee Name","Payee Account Number",Merchant,"Card Last Four Digits","Card Holder Full Name",Attachment,Note,"Total fees","Exchange To Amount"
+CARD-1001,15-01-2024,-19.72,EUR,"Card transaction of 100.00 PLN issued by Coffee Shop London",,1500.00,EUR,PLN,4.25000,,,,"Coffee Shop London",1234,"Test User",,,0.07,100.00
+CARD-1002,16-01-2024,-50.00,EUR,"Card transaction of 50.00 EUR issued by Online Store",,1450.00,EUR,EUR,,,,,Online Store,1234,"Test User",,,0.00,
+TRANSFER-1001,17-01-2024,-500.00,EUR,"Sent money to Jane Doe",,1400.00,EUR,PLN,4.30000,,"Jane Doe","PL12345678901234567890",,,,,,2.50,2150.00
+CARD-1003,18-01-2024,-25.00,EUR,"No information",,900.00,EUR,EUR,,,,,Grocery Store,1234,"Test User",,,0.00,

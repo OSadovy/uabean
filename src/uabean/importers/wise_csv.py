@@ -1,6 +1,8 @@
+import dateutil.parser
 from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.core.number import ZERO, D
+from beangulp import cache
 from beangulp.importers.csv import Col, CSVImporter
 
 
@@ -31,20 +33,58 @@ class Importer(CSVImporter):
 
     def call_categorizer(self, txn, row):
         txn.meta["lineno"] = -txn.meta["lineno"]
-        # currency exchange
-        if row[8] != row[7]:
-            txn.meta["converted"] = f"{row[19]} {row[8]} ({row[9]})"
+
+        is_new_format = len(row) >= 23
+
+        if is_new_format:
+            col_date_time = 2
+            col_description = 5
+            col_exchange_from = 8
+            col_exchange_to = 9
+            col_exchange_rate = 10
+            col_merchant = 14
+            col_total_fees = 19
+            col_exchange_to_amount = 20
+        else:
+            col_description = 4
+            col_exchange_from = 7
+            col_exchange_to = 8
+            col_exchange_rate = 9
+            col_merchant = 13
+            col_total_fees = 18
+            col_exchange_to_amount = 19
+
+        col_transferwise_id = 0
+
+        if is_new_format and row[col_date_time]:
+            try:
+                dt = dateutil.parser.parse(row[col_date_time], dayfirst=True)
+                txn.meta["time"] = dt.strftime("%H:%M:%S")
+            except (ValueError, AttributeError):
+                pass
+
+        if row[col_exchange_from] != row[col_exchange_to]:
+            txn.meta["converted"] = (
+                f"{row[col_exchange_to_amount]} {row[col_exchange_to]} ({row[col_exchange_rate]})"
+            )
+
         if txn.narration == "No information" or txn.narration.startswith(
             "Card transaction of"
         ):
             txn = txn._replace(narration="")
-        if row[13]:  # Merchant
-            txn = txn._replace(payee=row[13])
-        if row[4] and not row[4].startswith("Card transaction of"):  # Description
-            txn.meta["src_desc"] = row[4]
-        txn.meta["src_id"] = row[0]  # TransferWise ID
-        total_fees = D(row[18])
-        if not total_fees == ZERO:
+
+        if row[col_merchant]:
+            txn = txn._replace(payee=row[col_merchant])
+
+        if row[col_description] and not row[col_description].startswith(
+            "Card transaction of"
+        ):
+            txn.meta["src_desc"] = row[col_description]
+
+        txn.meta["src_id"] = row[col_transferwise_id]
+
+        total_fees = D(row[col_total_fees])
+        if total_fees != ZERO:
             txn.postings.append(
                 data.Posting(
                     "Expenses:Fees:Wise",
@@ -55,7 +95,15 @@ class Importer(CSVImporter):
                     None,
                 )
             )
+
         return txn
+
+    def account(self, _):
+        return "wise_csv"
+
+    def extract(self, filepath, existing=None):
+        account = self.filing.filing_account
+        return self.base._do_extract(cache.get_file(filepath), account, existing)
 
 
 def get_test_importer():

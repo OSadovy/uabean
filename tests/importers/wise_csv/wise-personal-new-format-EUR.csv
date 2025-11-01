@@ -1,0 +1,5 @@
+"TransferWise ID",Date,"Date Time",Amount,Currency,Description,"Payment Reference","Running Balance","Exchange From","Exchange To","Exchange Rate","Payer Name","Payee Name","Payee Account Number",Merchant,"Card Last Four Digits","Card Holder Full Name",Attachment,Note,"Total fees","Exchange To Amount","Transaction Type","Transaction Details Type"
+CARD-2001,20-01-2024,"20-01-2024 14:30:25.123",-35.50,EUR,"Card transaction of 150.00 PLN issued by Restaurant New York",,2000.00,EUR,PLN,4.22535,,,,"Restaurant New York",1234,"Test User",,,0.10,150.00,DEBIT,CARD
+CARD-2002,21-01-2024,"21-01-2024 09:15:00.000",-75.00,EUR,"Card transaction of 75.00 EUR issued by Tech Store",,1964.50,EUR,EUR,,,,,Tech Store,1234,"Test User",,,0.00,,DEBIT,CARD
+CARD-2003,22-01-2024,"22-01-2024 16:45:30.500",120.00,EUR,"Card transaction of -120.00 EUR issued by Refund Store",,1889.50,EUR,EUR,,,,,Refund Store,1234,"Test User",,,0.00,,CREDIT,CARD
+TRANSFER-2001,23-01-2024,"23-01-2024 11:20:15.000",-300.00,EUR,"Sent money to John Smith",,2009.50,EUR,GBP,0.85000,,"John Smith","GB82WEST12345698765432",,,,,,1.50,255.00,DEBIT,TRANSFER
