@@ -646,29 +646,42 @@ class Importer(IdentifyMixin, beangulp.Importer):
 
     def process_stock_merger(self, action_group):
         # This is almost certainly wrong for tax accounting
-        row = action_group[0]
-        symbol = get_currency_from_symbol(row.symbol)
-        holdings = [(k[0], v) for k, v in self.holdings_map.items() if k[1] == symbol]
+        # Identify which action is the old stock (negative quantity) and new stock (positive quantity)
+        old_action = (
+            action_group[0] if action_group[0].quantity < 0 else action_group[1]
+        )
+        new_action = (
+            action_group[1] if action_group[0].quantity < 0 else action_group[0]
+        )
+
+        # Process removal of old stock
+        old_symbol = get_currency_from_symbol(old_action.symbol)
+        holdings = [
+            (k[0], v) for k, v in self.holdings_map.items() if k[1] == old_symbol
+        ]
         postings = []
         for date, lst in holdings:
             for quantity, price, _real_price in lst:
                 postings.append(
                     data.Posting(
-                        self.get_asset_account(row.symbol),
-                        amount.Amount(-quantity, symbol),
-                        data.CostSpec(price, None, row.currency, date, None, False),
+                        self.get_asset_account(old_action.symbol),
+                        amount.Amount(-quantity, old_symbol),
+                        data.CostSpec(
+                            price, None, old_action.currency, date, None, False
+                        ),
                         None,
                         None,
                         None,
                     )
                 )
         for k in list(self.holdings_map.keys()):
-            if k[1] == symbol:
+            if k[1] == old_symbol:
                 del self.holdings_map[k]
+
         postings.append(
             data.Posting(
-                self.get_liquidity_account(row.currency),
-                amount.Amount(row.proceeds, row.currency),
+                self.get_liquidity_account(old_action.currency),
+                amount.Amount(old_action.proceeds, old_action.currency),
                 None,
                 None,
                 None,
@@ -676,19 +689,22 @@ class Importer(IdentifyMixin, beangulp.Importer):
             )
         )
         postings.append(
-            data.Posting(self.get_pnl_account(symbol), None, None, None, None, None)
+            data.Posting(self.get_pnl_account(old_symbol), None, None, None, None, None)
         )
-        row = action_group[1]
-        symbol = get_currency_from_symbol(row.symbol)
+
+        # Add new stock
+        new_symbol = get_currency_from_symbol(new_action.symbol)
         postings.append(
             data.Posting(
-                self.get_asset_account(row.symbol),
-                amount.Amount(row.quantity, get_currency_from_symbol(row.symbol)),
+                self.get_asset_account(new_action.symbol),
+                amount.Amount(
+                    new_action.quantity, get_currency_from_symbol(new_action.symbol)
+                ),
                 data.CostSpec(
-                    row.value / row.quantity,
+                    new_action.value / new_action.quantity,
                     None,
-                    row.currency,
-                    row.reportDate,
+                    new_action.currency,
+                    new_action.reportDate,
                     None,
                     None,
                 ),
@@ -697,15 +713,20 @@ class Importer(IdentifyMixin, beangulp.Importer):
                 None,
             )
         )
-        self.holdings_map[(row.reportDate, symbol)].append(
-            (row.quantity, row.value / row.quantity, row.value / row.quantity)
+        self.holdings_map[(new_action.reportDate, new_symbol)].append(
+            (
+                new_action.quantity,
+                new_action.value / new_action.quantity,
+                new_action.value / new_action.quantity,
+            )
         )
+
         return data.Transaction(
             data.new_metadata("corporateactions", 0),
-            row.reportDate,
+            new_action.reportDate,
             flags.FLAG_OKAY,
-            row.symbol,
-            row.description,
+            new_action.symbol,
+            new_action.description,
             data.EMPTY_SET,
             data.EMPTY_SET,
             postings,

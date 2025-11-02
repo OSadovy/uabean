@@ -26,3 +26,11 @@
   Assets:Investments:IB:TRNE       19 TRNE {13.15 USD, 2020-12-01} @ 13.15 USD
     ib_cost: 250.85
   C Expenses:IB:Fees                1 USD
+
+2000-01-15 open Assets:Investments:IB:MRO                       MRO
+
+2000-01-15 * "MRO" "BUY 50 MRO @ 10 USD"
+  Assets:Investments:IB:Cash  -501 USD
+  Assets:Investments:IB:MRO       50 MRO {10 USD, 2000-01-15} @ 10 USD
+    ib_cost: 501
+  C Expenses:IB:Fees              1 USD

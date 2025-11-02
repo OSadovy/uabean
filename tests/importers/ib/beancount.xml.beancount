@@ -46,6 +46,15 @@
   Assets:Investments:IB:Cash               3.03 USD
   Expenses:Investments:IB:WithholdingTax   0.53 USD
 
+2000-02-22 open Income:Investments:IB:MRO:PnL                   USD
+2000-02-22 open Assets:Investments:IB:COP                       COP
+
+2000-02-22 * "COP" "MRO(US5658491064) MERGED(Acquisition) WITH US20825C1045 255 FOR 1000 (COP, CONOCOPHILLIPS, US20825C1045)"
+  Assets:Investments:IB:MRO        -50 MRO {10 USD, 2000-01-15}
+  Assets:Investments:IB:Cash         0 USD
+  Income:Investments:IB:MRO:PnL
+  Assets:Investments:IB:COP      12.75 COP {111.75 USD, 2000-02-22}
+
 2000-03-03 open Assets:Investments:IB:LVGO                      LVGO
 
 2000-03-03 * "LVGO" "BUY 0.5052 LVGO @ 49.88 USD"
