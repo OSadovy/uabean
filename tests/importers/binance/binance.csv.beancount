@@ -97,3 +97,63 @@
 2000-01-18 * "P2P Trading"
   time: "00:00:00"
   Assets:Binance:P2P  -491.63 USDT
+
+2000-01-19 * "Buy 0.00353588 BNB"
+  time: "00:00:00"
+  Assets:Binance:Spot   0.00051234 BNB @ 0.113206 ETH
+  Assets:Binance:Spot   0.00298765 BNB @ 257.240042 BUSD
+  Assets:Binance:Spot   0.00003589 BNB @ 2427.513235 TRX
+  Assets:Binance:Spot  -0.76854321 BUSD
+  Assets:Binance:Spot  -0.08712345 TRX
+  Assets:Binance:Spot    -0.000058 ETH
+
+2000-01-20 * "Buy 0.98 SOL"
+  time: "00:00:00"
+  Assets:Binance:Spot           -98.5 USDT
+  Assets:Binance:Spot        0.000045 BNB
+  Income:Binance:Referal  -0.00004500 BNB
+  Assets:Binance:Spot            0.98 SOL @ 100.510204 USDT
+  Assets:Binance:Spot        -0.00022 BNB
+  Expenses:Fees:Binance    0.00022000 BNB
+
+2000-01-21 * "Sell 0.95 SOL"
+  time: "00:00:00"
+  Assets:Binance:Spot       -0.0002 BNB
+  Expenses:Fees:Binance  0.00020000 BNB
+  Assets:Binance:Spot         175.5 USDT
+  Assets:Binance:Spot         -0.95 SOL @ 184.736842 USDT
+
+2000-01-21 * "Referral Commission"
+  time: "00:00:10"
+  Assets:Binance:Spot         0.00004 BNB
+  Income:Binance:Referal  -0.00004000 BNB
+
+2000-01-22 * "Transfer"
+  time: "00:00:00"
+  Assets:Binance:P2P    700 USDT
+  Assets:Binance:Spot  -700 USDT
+
+2000-01-22 * "P2P Trading"
+  time: "12:30:00"
+  Assets:Binance:P2P  -700 USDT
+
+2000-01-23 * "Asset Recovery"
+  time: "00:00:00"
+  Assets:Binance:Spot  -500 MATIC
+
+2000-01-24 * "Token Swap - Distribution"
+  time: "00:00:00"
+  Assets:Binance:Spot  500 POL
+
+2000-01-25 * "Binance Pay - P_TEST123456789"
+  time: "00:00:00"
+  Assets:Binance:Spot  -650 USDT
+
+2000-01-26 * "Binance Pay - P_TEST987654321"
+  time: "00:00:00"
+  Assets:Binance:Spot  -1300 USDC
+
+2000-01-27 * "Convert 3.5E+2 POL to FDUSD"
+  time: "00:00:00"
+  Assets:Binance:Spot    80 FDUSD
+  Assets:Binance:Spot  -350 POL @ 0.228571 FDUSD
